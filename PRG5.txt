@@ -1,0 +1,97 @@
+#prg5
+
+
+import numpy as np
+import math
+import csv
+
+def read_data(filename):
+    with open(filename,"r") as csvfile:
+        datareader=csv.reader(csvfile)
+        traindata=list(datareader)
+    metadata=traindata[0]    #attributes name
+    traindata=traindata[1:]  #training examples      
+    return (metadata, traindata)
+
+def splitdataset(dataset, splitratio):
+    trainsize=int(len(dataset)*splitratio)
+    trainset=[]
+    testset=list(dataset)
+    i=0
+    while len(trainset)<trainsize:
+        trainset.append(testset.pop(i))
+    return [trainset,testset]
+    
+def classify(data,test):
+    totalsize=data.shape[0]
+    print("\n")
+    print("training data size=",totalsize)
+    print("test data size=",test.shape[0])
+    
+    countyes=0
+    countno=0
+    probyes=0
+    probno=0
+    print("\n")
+    print("target \t count \t probolaity")
+    for x in range(data.shape[0]):
+        if data[x,data.shape[1]-1] =='yes':
+            countyes+=1
+        if data[x,data.shape[1]-1] =='no':
+            countno+=1
+    probYes=countyes/totalsize
+    probNo=countno/totalsize
+    
+    print("Yes \t", countyes,"\t", probYes)
+    print("No \t", countno,"\t", probNo)
+    
+    prob0=np.zeros((test.shape[1]-1))
+    prob1=np.zeros((test.shape[1]-1))
+    
+    accuracy=0
+    print("\n")
+    print("instance \t prediction \t target")
+    
+    for t in range(test.shape[0]):
+        for k in range (test.shape[1]-1):
+            count1=count0=0
+            for j in range(data.shape[0]):
+                if test[t,k]==data[j,k] and data[j,data.shape[1]-1]=='no':
+                    count0+=1
+                
+                if test[t,k]==data[j,k] and data[j,data.shape[1]-1]=='yes':
+                    count1+=1  
+            prob0[k]=count0/countno
+            prob1[k]=count1/countyes
+        probno=probNo
+        probyes=probYes
+        for i in range(test.shape[1]-1):
+            probno=probno*prob0[i]
+            probyes=probyes*prob1[i]
+        if probno>probyes:
+            predict='no'
+        else:
+            predict='yes'
+        
+        print("  ",t+1," \t\t",predict," \t\t",test[t,test.shape[1]-1])
+        if predict==test[t,test.shape[1]-1]:
+            accuracy+=1
+    finalaccuracy=(accuracy/test.shape[0])*100
+    print("Accuracy=",finalaccuracy,"%")
+            
+
+metadata,traindata=read_data("D:\ML\enjoysport.csv")
+print("\n The attribute names of training data are:",metadata)
+splitratio=0.7
+trainset, testset=splitdataset(traindata, splitratio)
+training=np.array(trainset)
+print("\n The Training data set are:")
+for x in training:
+    print(x)
+
+testing=np.array(testset)
+print("\n The Test data set are:")
+for x in testing:
+    print(x)
+    
+classify(training, testing)
